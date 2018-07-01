@@ -33,7 +33,7 @@ public class MainPresenter implements MainContract.Presenter,
         view.showHideProgressbar(true);
         getFootballTeamsUseCase.setRequestModel(new
                 GetFootballTeamRequest("English Premier League"));
-        getFootballTeamsUseCase.execute();
+        getFootballTeamsUseCase.callApi();
     }
 
     @Override

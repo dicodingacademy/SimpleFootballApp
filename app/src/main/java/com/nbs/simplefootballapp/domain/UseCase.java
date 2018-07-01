@@ -1,33 +1,25 @@
 package com.nbs.simplefootballapp.domain;
 
-import android.util.Log;
-
-import com.google.gson.JsonSyntaxException;
+import com.nbs.simplefootballapp.data.libs.ApiCallback;
 import com.nbs.simplefootballapp.data.libs.ApiManager;
-import com.nbs.simplefootballapp.data.libs.ErrorListener;
 import com.nbs.simplefootballapp.data.model.request.RequestModel;
-import com.nbs.simplefootballapp.data.model.response.ErrorResponse;
 import com.nbs.simplefootballapp.data.model.response.ResponseModel;
 
-import java.io.IOException;
-import java.net.SocketTimeoutException;
+import rx.Observable;
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
+import rx.subscriptions.CompositeSubscription;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
-public abstract class UseCase<T extends RequestModel, D extends ResponseModel>
-        implements ErrorListener{
+public abstract class UseCase<T extends RequestModel, D extends ResponseModel>{
 
     private T requestModel;
 
     private final static String TAG = "UseCase";
 
-    public final String GENERAL_ERROR_UNABLE_TO_CONNECT_TO_SERVER = "Unable to connect to server";
+    private Observable<D> apiCall;
 
-    public final String GENERAL_ERROR_NO_DATA = "No data";
-
-    private Call<D> apiCall;
+    private Subscriber<D> subscriber;
 
     private ApiManager apiManager;
 
@@ -48,150 +40,57 @@ public abstract class UseCase<T extends RequestModel, D extends ResponseModel>
         apiCall = null;
     }
 
-    public Call<D> getApiCall() {
+    public Subscriber<D> getSubscriber() {
+        return subscriber;
+    }
+
+    public void setSubscriber(Subscriber<D> subscriber) {
+        this.subscriber = subscriber;
+    }
+
+    public Observable<D> getApiCall() {
         return apiCall;
     }
 
-    public void setApiCall(Call<D> apiCall) {
+    public void setApiCall(Observable<D> apiCall) {
         this.apiCall = apiCall;
     }
 
-    protected abstract Call<D> getApi();
-
-    protected abstract D getCache(T request);
-
-    protected abstract void onCacheLoaded(D response);
-
-    protected abstract void onResponseLoaded(D response);
+    protected abstract Observable<D> getApi();
 
     protected abstract void onResponseEmpty();
 
-    //General Error Response passed here
-    protected abstract void onErrorResponse(String message);
+    private CompositeSubscription compositeSubscription;
 
-    protected abstract void onRequestCancelled();
+    protected abstract void callApi();
 
-    public void execute() {
+    public void execute(Subscriber subscriber) {
+        setSubscriber(subscriber);
+
         if (getRequestModel() == null) {
             throw new IllegalStateException("Request Model cannot be null");
         }
-        if (getCache(getRequestModel()) != null) {
-            // TODO: 4/23/17 check if cache is valid and expiration here
-            onCacheLoaded(getCache(getRequestModel()));
-        } else {
-            setApiCall(getApi().clone());
-            getApi().enqueue(new Callback<D>() {
-                @Override
-                public void onResponse(Call<D> call, Response<D> response) {
-                    if (response.isSuccessful()) {
-                        if (response.body() != null && (response.code() != 204)) {
-                            onResponseLoaded(response.body());
-                        } else if (response.body() == null || response.code() == 204) {
-                            onResponseEmpty();
-                        }
-                    } else {
-                        String errorMessage = ErrorResponse.getErrorMessage(response.errorBody());
-                        //catch general error
-                        onErrorResponse(errorMessage);
 
-                        //catch specific error
-                        switch (response.code()) {
-                            case 400:
-                                onBadRequestError(errorMessage);
-                                break;
-                            case 401:
-                                onUnauthorizeRequestError(errorMessage);
-                                break;
-                            case 403:
-                                onForbiddenRequestError(errorMessage);
-                                break;
-                            case 404:
-                                onNotFoundError(errorMessage);
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<D> call, Throwable t) {
-                    //check if failure cause is because request canceled
-                    boolean isCancelled = "Socket closed".equalsIgnoreCase(t.getMessage());
-
-                    //catch general failure cause
-                    if (isCancelled) {
-                        onRequestCancelled();
-                        Log.d("UseCase", "Request is cancelled");
-                    } else {
-                        onErrorResponse(GENERAL_ERROR_UNABLE_TO_CONNECT_TO_SERVER);
-                    }
-
-
-                    //catch specific failure cause
-                    if (t instanceof SocketTimeoutException) {
-                        onTimeoutError();
-                    } else if (t instanceof IOException && !isCancelled) {
-                        onNoInternetError();
-                    } else if (t instanceof JsonSyntaxException) {
-                        onJsonSyntaxException(t.getMessage());
-                    } else {
-                        if (!isCancelled) onUnknownError();
-                    }
-                }
-            });
+        if (compositeSubscription == null){
+            compositeSubscription = new CompositeSubscription();
         }
+
+        compositeSubscription.add(getApi()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(getSubscriber()));
     }
 
     public void cancel() {
-        if (getApiCall() != null){
-            if (getApiCall().isExecuted()) {
-                Log.d("UseCase", "Request is going to be cancelled");
-                getApiCall().cancel();
+        if (getSubscriber() != null){
+            getSubscriber().unsubscribe();
+        }
+
+        if (compositeSubscription != null && compositeSubscription.hasSubscriptions()){
+            compositeSubscription.unsubscribe();
+            if (subscriber instanceof ApiCallback){
+                ((ApiCallback) subscriber).onRequestCancelled();
             }
         }
     }
-
-    //    region spesific error
-    @Override
-    public void onBadRequestError(String message) {
-        Log.e(TAG, "onBadRequestError(): "+message);
-    }
-
-    @Override
-    public void onUnauthorizeRequestError(String message) {
-        Log.e(TAG, "unathorized(): "+message);
-    }
-
-    @Override
-    public void onForbiddenRequestError(String message) {
-        Log.e(TAG, "ForbiddenRequest(): "+message);
-    }
-
-    @Override
-    public void onNotFoundError(String message) {
-        Log.e(TAG, "onNotFoundError(): "+message);
-    }
-
-    @Override
-    public void onTimeoutError() {
-        Log.e(TAG, "onTimeoutError(): Timeout");
-    }
-
-    @Override
-    public void onNoInternetError() {
-        Log.e(TAG, "onNoInternetError()");
-    }
-
-    @Override
-    public void onUnknownError() {
-        Log.e(TAG, "onUnknownError()");
-    }
-
-    @Override
-    public void onJsonSyntaxException(String cause) {
-        Log.e(TAG, "onJsonSyntaxException(): " + cause);
-    }
-
-    //endregion
 }

@@ -34,7 +34,7 @@ public class MainPresenterTest {
     public void testGetFootballTeam(){
         List<Team> footballTeams = new ArrayList<>();
 
-        Mockito.doNothing().when(getFootballTeamsUseCase).execute();
+        Mockito.doNothing().when(getFootballTeamsUseCase).callApi();
 
         mainPresenter.getFootballTeams();
         mainPresenter.onGetFootballTeamsSuccess(footballTeams);

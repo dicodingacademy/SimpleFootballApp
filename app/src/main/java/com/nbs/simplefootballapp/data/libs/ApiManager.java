@@ -5,6 +5,7 @@ import com.nbs.simplefootballapp.data.model.response.FootballTeamResponse;
 import javax.inject.Inject;
 
 import retrofit2.Call;
+import rx.Observable;
 
 public class ApiManager implements IApiManager{
 
@@ -16,7 +17,7 @@ public class ApiManager implements IApiManager{
     }
 
     @Override
-    public Call<FootballTeamResponse> getFootballTeam(String leagueName) {
+    public Observable<FootballTeamResponse> getFootballTeam(String leagueName) {
         return apiClient.getFootballTeam(leagueName);
     }
 }

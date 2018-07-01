@@ -10,7 +10,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.nbs.simplefootballapp.R;
-import com.nbs.simplefootballapp.data.model.entity.FootballTeam;
+import com.nbs.simplefootballapp.presentation.viewmodel.Team;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -20,7 +20,7 @@ import butterknife.ButterKnife;
 
 public class FootballTeamAdapter extends RecyclerView.Adapter<FootballTeamAdapter.FootballTeamViewholder> {
 
-    private List<FootballTeam> footballTeams;
+    private List<Team> footballTeams;
 
     private OnTeamItemClickCallback onTeamItemClickCallback;
 
@@ -32,11 +32,11 @@ public class FootballTeamAdapter extends RecyclerView.Adapter<FootballTeamAdapte
         this.onTeamItemClickCallback = onTeamItemClickCallback;
     }
 
-    public List<FootballTeam> getFootballTeams() {
+    public List<Team> getFootballTeams() {
         return footballTeams;
     }
 
-    public void setFootballTeams(List<FootballTeam> footballTeams) {
+    public void setFootballTeams(List<Team> footballTeams) {
         this.footballTeams = footballTeams;
     }
 
@@ -72,9 +72,9 @@ public class FootballTeamAdapter extends RecyclerView.Adapter<FootballTeamAdapte
             ButterKnife.bind(this, itemView);
         }
 
-        public void bind(final FootballTeam footballTeam) {
-            Picasso.get().load(footballTeam.getStrTeamBadge()).into(imgTeam);
-            tvTeam.setText(footballTeam.getStrTeam());
+        public void bind(final Team footballTeam) {
+            Picasso.get().load(footballTeam.getBadge()).into(imgTeam);
+            tvTeam.setText(footballTeam.getName());
             rvItem.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -85,6 +85,6 @@ public class FootballTeamAdapter extends RecyclerView.Adapter<FootballTeamAdapte
     }
 
     public interface OnTeamItemClickCallback{
-        void onTeamItemClicked(FootballTeam team);
+        void onTeamItemClicked(Team team);
     }
 }

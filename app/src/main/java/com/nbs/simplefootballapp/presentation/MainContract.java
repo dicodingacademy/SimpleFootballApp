@@ -1,12 +1,12 @@
 package com.nbs.simplefootballapp.presentation;
 
-import com.nbs.simplefootballapp.data.model.entity.FootballTeam;
+import com.nbs.simplefootballapp.presentation.viewmodel.Team;
 
 import java.util.List;
 
 public interface MainContract {
     interface View{
-        void showFootballTeam(List<FootballTeam> footballTeams);
+        void showFootballTeam(List<Team> footballTeams);
 
         void onFailedLoadFootballTeam(String message);
 

@@ -4,6 +4,8 @@ import com.nbs.simplefootballapp.data.libs.ApiManager;
 import com.nbs.simplefootballapp.data.model.entity.FootballTeam;
 import com.nbs.simplefootballapp.data.model.request.GetFootballTeamRequest;
 import com.nbs.simplefootballapp.data.model.response.FootballTeamResponse;
+import com.nbs.simplefootballapp.presentation.viewmodel.Team;
+import com.nbs.simplefootballapp.presentation.viewmodel.TeamMapper;
 
 import java.util.List;
 
@@ -14,8 +16,11 @@ public class GetFootballTeamsUseCase extends
 
     private OnGetFootballTeamsCallback onGetFootballTeamsCallback;
 
-    public GetFootballTeamsUseCase(ApiManager apiManager) {
+    private TeamMapper teamMapper;
+
+    public GetFootballTeamsUseCase(ApiManager apiManager, TeamMapper teamMapper) {
         super(apiManager);
+        this.teamMapper = teamMapper;
     }
 
     public OnGetFootballTeamsCallback getOnGetFootballTeamsCallback() {
@@ -46,7 +51,7 @@ public class GetFootballTeamsUseCase extends
     protected void onResponseLoaded(FootballTeamResponse response) {
         if (response.getFootballTeams() != null){
             if (!response.getFootballTeams().isEmpty()){
-                getOnGetFootballTeamsCallback().onGetFootballTeamsSuccess(response.getFootballTeams());
+                getOnGetFootballTeamsCallback().onGetFootballTeamsSuccess(teamMapper.getTeams(response.getFootballTeams()));
             }else {
                 onResponseEmpty();
             }
@@ -71,7 +76,7 @@ public class GetFootballTeamsUseCase extends
     }
 
     public interface OnGetFootballTeamsCallback{
-        void onGetFootballTeamsSuccess(List<FootballTeam> footballTeams);
+        void onGetFootballTeamsSuccess(List<Team> teams);
 
         void onGetFootballTeamsFailed(String message);
     }

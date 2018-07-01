@@ -1,8 +1,8 @@
 package com.nbs.simplefootballapp.presentation;
 
-import com.nbs.simplefootballapp.data.model.entity.FootballTeam;
 import com.nbs.simplefootballapp.data.model.request.GetFootballTeamRequest;
 import com.nbs.simplefootballapp.domain.GetFootballTeamsUseCase;
+import com.nbs.simplefootballapp.presentation.viewmodel.Team;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -32,7 +32,7 @@ public class MainPresenterTest {
 
     @Test
     public void testGetFootballTeam(){
-        List<FootballTeam> footballTeams = new ArrayList<>();
+        List<Team> footballTeams = new ArrayList<>();
 
         Mockito.doNothing().when(getFootballTeamsUseCase).execute();
 

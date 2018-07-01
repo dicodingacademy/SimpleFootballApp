@@ -1,8 +1,8 @@
 package com.nbs.simplefootballapp.presentation;
 
-import com.nbs.simplefootballapp.data.model.entity.FootballTeam;
 import com.nbs.simplefootballapp.data.model.request.GetFootballTeamRequest;
 import com.nbs.simplefootballapp.domain.GetFootballTeamsUseCase;
+import com.nbs.simplefootballapp.presentation.viewmodel.Team;
 import com.nbs.simplefootballapp.util.EspressoIdlingResource;
 
 import java.util.List;
@@ -42,7 +42,7 @@ public class MainPresenter implements MainContract.Presenter,
     }
 
     @Override
-    public void onGetFootballTeamsSuccess(List<FootballTeam> footballTeams) {
+    public void onGetFootballTeamsSuccess(List<Team> footballTeams) {
         EspressoIdlingResource.decrement();
         view.showHideProgressbar(false);
         view.showFootballTeam(footballTeams);

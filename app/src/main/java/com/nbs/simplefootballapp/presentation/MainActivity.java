@@ -10,9 +10,9 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.nbs.simplefootballapp.R;
-import com.nbs.simplefootballapp.data.model.entity.FootballTeam;
 import com.nbs.simplefootballapp.di.component.AppComponent;
 import com.nbs.simplefootballapp.di.component.DaggerAppComponent;
+import com.nbs.simplefootballapp.presentation.viewmodel.Team;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity
         rvItems.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
 
         adapter = new FootballTeamAdapter();
-        adapter.setFootballTeams(new ArrayList<FootballTeam>());
+        adapter.setFootballTeams(new ArrayList<Team>());
         adapter.setOnTeamItemClickCallback(this);
         rvItems.setAdapter(adapter);
 
@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void showFootballTeam(List<FootballTeam> footballTeams) {
+    public void showFootballTeam(List<Team> footballTeams) {
         adapter.getFootballTeams().addAll(footballTeams);
         adapter.notifyDataSetChanged();
     }
@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onTeamItemClicked(FootballTeam team) {
-        showToast(team.getStrTeam());
+    public void onTeamItemClicked(Team team) {
+        showToast(team.getName());
     }
 }

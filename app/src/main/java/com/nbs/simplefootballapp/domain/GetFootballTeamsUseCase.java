@@ -1,10 +1,7 @@
 package com.nbs.simplefootballapp.domain;
 
-import android.util.Log;
-
 import com.nbs.simplefootballapp.data.libs.ApiCallback;
 import com.nbs.simplefootballapp.data.libs.ApiManager;
-import com.nbs.simplefootballapp.data.model.entity.FootballTeam;
 import com.nbs.simplefootballapp.data.model.request.GetFootballTeamRequest;
 import com.nbs.simplefootballapp.data.model.response.FootballTeamResponse;
 import com.nbs.simplefootballapp.presentation.viewmodel.Team;
@@ -12,7 +9,6 @@ import com.nbs.simplefootballapp.presentation.viewmodel.TeamMapper;
 
 import java.util.List;
 
-import retrofit2.Call;
 import rx.Observable;
 
 public class GetFootballTeamsUseCase extends UseCase<GetFootballTeamRequest, FootballTeamResponse> {
@@ -48,32 +44,17 @@ public class GetFootballTeamsUseCase extends UseCase<GetFootballTeamRequest, Foo
     }
 
     @Override
-    public void callApi() {
-        execute(new ApiCallback<FootballTeamResponse>(){
-            @Override
-            public void onSuccess(FootballTeamResponse response) {
-                if (response.getFootballTeams() != null){
-                    getOnGetFootballTeamsCallback().onGetFootballTeamsSuccess(teamMapper.getTeams(response.getFootballTeams()));
-                }else{
-                    onResponseEmpty();
-                }
-            }
+    protected void onResponseLoaded(FootballTeamResponse response) {
+        if (response.getFootballTeams() != null){
+            getOnGetFootballTeamsCallback().onGetFootballTeamsSuccess(teamMapper.getTeams(response.getFootballTeams()));
+        }else{
+            onResponseEmpty();
+        }
+    }
 
-            @Override
-            public void onFailure(String message) {
-                getOnGetFootballTeamsCallback().onGetFootballTeamsFailed(message);
-            }
+    @Override
+    protected void onResponseError(String message) {
 
-            @Override
-            public void onFinish() {
-                Log.d(TAG, "Request Finished");
-            }
-
-            @Override
-            public void onRequestCancelled() {
-                Log.d(TAG, "Request Cancelled");
-            }
-        });
     }
 
     public interface OnGetFootballTeamsCallback{

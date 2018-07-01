@@ -62,10 +62,7 @@ public abstract class UseCase<T extends RequestModel, D extends ResponseModel>{
 
     private CompositeSubscription compositeSubscription;
 
-    protected abstract void callApi();
-
-    public void execute(Subscriber subscriber) {
-        setSubscriber(subscriber);
+    public void execute() {
 
         if (getRequestModel() == null) {
             throw new IllegalStateException("Request Model cannot be null");
@@ -75,11 +72,37 @@ public abstract class UseCase<T extends RequestModel, D extends ResponseModel>{
             compositeSubscription = new CompositeSubscription();
         }
 
+        setSubscriber(new ApiCallback<D>(){
+            @Override
+            public void onSuccess(D response) {
+                onResponseLoaded(response);
+            }
+
+            @Override
+            public void onFailure(String message) {
+                onResponseError(message);
+            }
+
+            @Override
+            public void onFinish() {
+
+            }
+
+            @Override
+            public void onRequestCancelled() {
+
+            }
+        });
+
         compositeSubscription.add(getApi()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(getSubscriber()));
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(getSubscriber()));
     }
+
+    protected abstract void onResponseLoaded(D response);
+
+    protected abstract void onResponseError(String message);
 
     public void cancel() {
         if (getSubscriber() != null){
